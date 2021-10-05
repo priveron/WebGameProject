@@ -1,8 +1,8 @@
-// import * as THREE from 'https://cdn.skypack.dev/three@0.133'
-// import { OrbitControls } from 'https://cdn.skypack.dev/three@0.133/examples/jsm/controls/OrbitControls.js'
+import * as THREE from 'https://cdn.skypack.dev/three@0.133'
+import { OrbitControls } from 'https://cdn.skypack.dev/three@0.133/examples/jsm/controls/OrbitControls.js'
 
-import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+// import * as THREE from 'three'
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 
 const canvas = document.querySelector('canvas.webgl')

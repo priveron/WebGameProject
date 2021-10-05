@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "parcel index.html",
-    "deploy": "mkdir -p dist/src && cp index.html dist/ && cp -r src/ dist/src/ && cp gh-pages -d dist"
+    "deploy": "gh-pages -d dist"
   },
   "repository": {
     "type": "git",

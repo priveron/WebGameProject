@@ -1,11 +1,13 @@
-import * as THREE from 'https://cdn.skypack.dev/three@0.133'
-import { FBXLoader } from 'https://cdn.skypack.dev/three@0.133/examples/jsm/loaders/FBXLoader.js'
-import { PointerLockControls } from 'https://cdn.skypack.dev/three@0.133/examples/jsm/controls/PointerLockControls.js'
+import './style.css'
+import * as THREE from 'three'
+import * as dat from 'dat.gui'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
 import { setKeyDown, setKeyUp } from './functions.js'
 // import * as ENABLE3D from '/scripts/enable3d.ammoPhysics.0.23.0.min.js'
 
-const tl = gsap.timeline()
 const gui = new dat.GUI()
+gui.close()
 
 const canvas = document.querySelector('canvas.webgl')
 const sizes = {
@@ -16,7 +18,6 @@ const sizes = {
 const debugObject = {
     color: 0x999999,
     anim: false,
-    spin: () => tl.to(mesh.rotation, { duration: 1, y: mesh.rotation.y + Math.PI * 2 })
 }
 
 let keys = {
@@ -33,18 +34,29 @@ let count = 0
 const scene = new THREE.Scene()
 
 const testCube = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1), new THREE.MeshBasicMaterial( {color: 0x00ff00} ))
-const geometry = new THREE.PlaneBufferGeometry( 2000, 2000 )
-const material = new THREE.MeshBasicMaterial({ color: debugObject.color })
+testCube.visible = false
+gui.add(testCube, 'visible').name('cameraCube visible')
+// const cubeTextureLoader = new THREE.CubeTextureLoader()
+const geometry = new THREE.PlaneBufferGeometry( 500, 500 )
+const material = new THREE.MeshPhongMaterial({ color: debugObject.color, depthWrite: false })
 const mesh = new THREE.Mesh(geometry, material)
 mesh.rotation.x = -Math.PI / 2
 mesh.receiveShadow = true
-mesh.receiveShadow = true
 gui.add(mesh.position, 'y').min(-3).max(3).step(0.01).name('elevation')
 gui.add(mesh, 'visible')
-gui.add(mesh.material, 'wireframe')
 gui.addColor(debugObject, 'color').onChange(() => mesh.material.color.set(debugObject.color))
-gui.add(debugObject, 'spin')
 scene.add(mesh)
+
+scene.background = new THREE.Color( 0xa0a0a0 );
+scene.fog = new THREE.Fog( 0xa0a0a0, 50, 200 );
+// scene.background = cubeTextureLoader.load([
+//     '/Standard-Cube-Map/px.png',
+//     '/Standard-Cube-Map/nx.png',
+//     '/Standard-Cube-Map/py.png',
+//     '/Standard-Cube-Map/py.png',
+//     '/Standard-Cube-Map/pz.png',
+//     '/Standard-Cube-Map/pz.png'
+// ])
 
 const gridHelper = new THREE.GridHelper( 100, 40 );
 scene.add( gridHelper );
@@ -53,7 +65,7 @@ let model
 let mixer
 let actions = {}
 const loader = new FBXLoader()
-loader.load( '/static/ybot.fbx', function ( object ) {
+loader.load( '/fbx/ybot.fbx', function ( object ) {
     model = object
     object.scale.setScalar(0.1)
     mixer = new THREE.AnimationMixer( object )
@@ -63,38 +75,38 @@ loader.load( '/static/ybot.fbx', function ( object ) {
     action.play()
 
     object.traverse( function ( child ) {
-
         if ( child.isMesh ) {
-
         child.castShadow = true
         child.receiveShadow = true
-
+        }
+        if (child.material) {
+            child.material = new THREE.MeshNormalMaterial()
         }
     })
     gui.add(model.rotation, 'y').min(-Math.PI).max(Math.PI).step(0.01).name('rotate')
     object.add(testCube)
     scene.add( object )
-    loader.load('/static/Running.fbx', function ( object ) {
+    loader.load('/fbx/Running.fbx', function ( object ) {
         //const mixer = new THREE.AnimationMixer( object )
     
         const action = mixer.clipAction( object.animations[0] )
         scene.add(object)
         actions['run'] = action
-        loader.load('/static/Run.fbx', function ( object ) {
+        loader.load('/fbx/Run.fbx', function ( object ) {
             //const mixer = new THREE.AnimationMixer( object )
         
             const action = mixer.clipAction( object.animations[0] )
             scene.add(object)
             actions['ninja'] = action
         })
-        loader.load('/static/Running Backward.fbx', function ( object ) {
+        loader.load('/fbx/Running Backward.fbx', function ( object ) {
             //const mixer = new THREE.AnimationMixer( object )
         
             const action = mixer.clipAction( object.animations[0] )
             scene.add(object)
             actions['back'] = action
         })
-        loader.load('/static/Jumping.fbx', function ( object ) {
+        loader.load('/fbx/Jumping.fbx', function ( object ) {
             //const mixer = new THREE.AnimationMixer( object )
         
             const action = mixer.clipAction( object.animations[0] )
@@ -104,7 +116,6 @@ loader.load( '/static/ybot.fbx', function ( object ) {
         })
     })
 } )
-
 
 console.log(actions);
 gui.add(debugObject, 'anim').onChange(() => actions['run'].play)
@@ -142,6 +153,23 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+const listener = new THREE.AudioListener();
+camera.add( listener );
+const sound = new THREE.Audio( listener );
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load( '/sounds/calm1.ogg', function( buffer ) {
+	sound.setBuffer( buffer );
+	sound.setLoop( true );
+	sound.setVolume( 0.5 );
+	sound.play();
+});
+// audioLoader.load( '/sounds/calm1.ogg', function( buffer ) {
+	
+// });
+
+gui.add(sound, 'pause')
+gui.add(sound, 'play')
 
 window.addEventListener('resize', () =>
 {
@@ -226,6 +254,8 @@ const update = (delta) => {
             action = actions['idle']
             count++
             document.getElementById('jumps').textContent = count
+            mixer.stopAllAction()
+            action.play()
                 if (count === 15)
                 document.getElementById('score').innerHTML = "You WIN !!!!!!!!!!"
             }

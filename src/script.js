@@ -28,6 +28,8 @@ let keys = {
     shift: false
 }
 
+let count = 0
+
 const scene = new THREE.Scene()
 
 const testCube = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1), new THREE.MeshBasicMaterial( {color: 0x00ff00} ))
@@ -92,18 +94,18 @@ loader.load( '/static/ybot.fbx', function ( object ) {
             scene.add(object)
             actions['back'] = action
         })
+        loader.load('/static/Jumping.fbx', function ( object ) {
+            //const mixer = new THREE.AnimationMixer( object )
+        
+            const action = mixer.clipAction( object.animations[0] )
+            action.setLoop( THREE.LoopOnce )
+            scene.add(object)
+            actions['jump'] = action
+        })
     })
 } )
 
-let coinMesh
-loader.load( '/static/Coin.fbx', function (object) {
-    const coinGeometry = object.scene.geometry.clone()
-    //const coinGeometry = object.geometry.clone()
-    const coinMaterial = coinGeometry.material
-    coinMesh = new THREE.InstancedMesh(coinGeometry, coinMaterial, 15)
-    coinMesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-    scene.add(coinMesh)
-})
+
 console.log(actions);
 gui.add(debugObject, 'anim').onChange(() => actions['run'].play)
 testCube.position.set(0, 200, -400)
@@ -192,7 +194,7 @@ const update = (delta) => {
         if (keys.shift) speed = 80
             else speed = 40
         if (keys.forward) {
-            if (!keys.shift && action !== actions['run']) {
+            if (!keys.shift && action !== actions['run'] && action !== actions['jump']) {
                 action = actions['run']
                 mixer.stopAllAction()
                 action.play()
@@ -204,7 +206,7 @@ const update = (delta) => {
             model.position.addScaledVector(forward, speed * delta);
         }
         if (keys.backward) {
-            if (action !== actions['back']) {
+            if (action !== actions['back'] && action !== actions['jump'] && action !== actions['jump']) {
                 action = actions['back']
                 mixer.stopAllAction()
                 action.play()
@@ -219,11 +221,25 @@ const update = (delta) => {
             //model.position.addScaledVector(right, -speed * delta);
             model.rotation.y -= 3 * delta
         }
-        if (!keys.forward && !keys.backward && action !== actions['idle'] && action !== undefined) {
+        if (keys.space || action === actions['jump']) {
+            if (action !== undefined && action === actions['jump'] && !action.isRunning()) {
+            action = actions['idle']
+            count++
+            document.getElementById('jumps').textContent = count
+                if (count === 15)
+                document.getElementById('score').innerHTML = "You WIN !!!!!!!!!!"
+            }
+            else if (keys.space && action !== actions['jump']) {
+                action = actions['jump']
+                mixer.stopAllAction()
+                action.play()
+            }
+        }
+        if (!keys.forward && !keys.backward && action !== actions['idle'] && action !== undefined && action !== actions['jump']) {
             action = actions['idle']
             mixer.stopAllAction()
             action.play()
-    }
+        }
         model.position.y = 0
         temp.setFromMatrixPosition(testCube.matrixWorld)
         camera.position.lerp(temp, 0.2)

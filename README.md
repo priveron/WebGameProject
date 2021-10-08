@@ -11,13 +11,25 @@ Shift to Sprint
 
 And SPACE To JUMP !
 
-Play Here: https://priveron.github.io/isNotAJumper/
+## Demo
+
+https://isnotajumper-priveron.netlify.app/
+
 ## Installation
 
-Run locally with lite-server
+Start by cloning the repository !
+Run locally with npm and webpack (webpack files imported from Simon Bruno ressources (I'm using webpack because of deployment issues))
 
 ```bash
-  npm install -g lite-server
-  lite-server
+  npm install
+  npm run dev
 ```
-    
+
+To deploy this project run
+
+```bash
+  npm run build
+  npm run deploy
+```
+
+- [@priveron](https://www.github.com/priveron)

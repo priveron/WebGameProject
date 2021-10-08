@@ -157,6 +157,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 const listener = new THREE.AudioListener();
 camera.add( listener );
 const sound = new THREE.Audio( listener );
+const soundJump = new THREE.Audio( listener );
+const soundWin = new THREE.Audio( listener );
+const soundCling = new THREE.Audio( listener );
 const audioLoader = new THREE.AudioLoader();
 audioLoader.load( '/sounds/calm1.ogg', function( buffer ) {
 	sound.setBuffer( buffer );
@@ -164,9 +167,18 @@ audioLoader.load( '/sounds/calm1.ogg', function( buffer ) {
 	sound.setVolume( 0.5 );
 	sound.play();
 });
-// audioLoader.load( '/sounds/calm1.ogg', function( buffer ) {
-	
-// });
+audioLoader.load( '/sounds/cloth1.ogg', function( buffer ) {
+	soundJump.setBuffer( buffer );
+    soundJump.setVolume( 0.1 );
+});
+audioLoader.load( '/sounds/harp.ogg', function( buffer ) {
+	soundCling.setBuffer( buffer );
+    soundCling.setVolume( 0.5 );
+});
+audioLoader.load( '/sounds/cat.ogg', function( buffer ) {
+	soundWin.setBuffer( buffer );
+    soundWin.setVolume( 0.7 );
+});
 
 gui.add(sound, 'pause')
 gui.add(sound, 'play')
@@ -253,16 +265,22 @@ const update = (delta) => {
             if (action !== undefined && action === actions['jump'] && !action.isRunning()) {
             action = actions['idle']
             count++
-            document.getElementById('jumps').textContent = count
+            if (count < 10)
+                document.getElementById('jumps').textContent = count
             mixer.stopAllAction()
             action.play()
-                if (count === 15)
+            soundCling.play()
+                if (count === 10) {
                 document.getElementById('score').innerHTML = "You WIN !!!!!!!!!!"
+                sound.stop()
+                soundWin.play()
+                }
             }
             else if (keys.space && action !== actions['jump']) {
                 action = actions['jump']
                 mixer.stopAllAction()
                 action.play()
+                soundJump.play()
             }
         }
         if (!keys.forward && !keys.backward && action !== actions['idle'] && action !== undefined && action !== actions['jump']) {

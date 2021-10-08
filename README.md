@@ -1,6 +1,8 @@
 
 # isNotAJumper 🤸‍♀️
 
+![Screenshot](readme.png)
+
 1st web game project @ Ironhack using three.js
 
 Z/Q/S/D or Arrow Keys to move
